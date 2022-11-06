@@ -1,9 +1,19 @@
+// I2C_KEYPAD: para usar un GPIO expander PCF8574
+// se usa la libreria:
+// https://github.com/joeyoung/arduino_keypads/tree/master/Keypad_I2C
+// si se comenta el #define, se usa el mapeo directo del keypad a los pines del Wemos 
+#define I2C_KEYPAD
 
 #include <ESP8266WiFi.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoOTA.h>
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+//LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+
+#define SDA_PIN D2 
+#define SCL_PIN D1 
+
 const byte ROWS = 4; //four rows
 const byte COLS = 3; //three columns
 char keys[ROWS][COLS] = {
@@ -12,15 +22,24 @@ char keys[ROWS][COLS] = {
   {'7', '8', '9'},
   {'*', '0', '#'}
 };
-byte rowPins[ROWS] = {D7, D6, D5, D0} ;
-byte colPins[COLS] = { D8, D4, D3} ;
 char key;
-#include <Keypad.h>
-Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+
+#ifdef I2C_KEYPAD
+  #include "Keypad_I2C.h"
+  #define I2CADDR 0x20
+  byte rowPins[ROWS] = {0, 1, 2, 3}; //connect to the row pinouts of the keypad
+  byte colPins[COLS] = {4, 5, 6}; //connect to the column pinouts of the keypad
+  Keypad_I2C keypad = Keypad_I2C( makeKeymap(keys), rowPins, colPins, ROWS, COLS, I2CADDR );
+#else
+  byte rowPins[ROWS] = {D7, D6, D5, D0} ;
+  byte colPins[COLS] = { D8, D4, D3} ;
+  #include <Keypad.h>
+  Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+#endif
 
 #include <Ticker.h>
 Ticker tickerKey;
-//#define AP
+#define AP
 #ifndef AP
 #define STASSID "MYSSID"
 #define STAPSK  "MYPASS"
@@ -104,8 +123,12 @@ void readKey() {
     Serial.println(key);
   }
 }
-void setup() {
 
+
+void setup() {
+#ifdef I2C_KEYPAD
+  Wire.begin(SDA_PIN, SCL_PIN);
+#endif
   lcd.init();                      // initialize the lcd
   lcd.init();
   Serial.begin(115200);
@@ -136,6 +159,7 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(300);
+    Serial.print("Wifi status: ");
     Serial.println(WiFi.status());
   }
 
@@ -156,8 +180,14 @@ void setup() {
   // lcd.print("RA:");
   //  lcd.setCursor(0, 1);
   //  lcd.print("DE:");
+
+#ifdef I2C_KEYPAD
+  keypad.begin();
+#endif
   keypad.addEventListener(keypadEvent); // Add an event listener for this keypad
   tickerKey.attach_ms(100, readKey);
+
+
   InitOTA();
 }
 
