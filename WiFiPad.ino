@@ -43,7 +43,7 @@ Ticker tickerKey;
 #ifndef AP
 #define STASSID "MYSSID"
 #define STAPSK  "MYPASS"
-const char* host = "192.168.1.82";
+const char* host = "192.168.1.14";
 #else
 #define STASSID "ESP32go"
 //#define STASSID "ESP-PGT"
@@ -187,7 +187,7 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print(WiFi.localIP());
   delay(3000);
-  lcd.clear();
+ lcd.clear();
   // lcd.setCursor(0, 0);
   // lcd.print("RA:");
   //  lcd.setCursor(0, 1);
@@ -211,13 +211,18 @@ void loop() {
   Serial.println(port);
   String s;
   // Use WiFiClient class to create TCP connections
-  //  lcd.setCursor(1,1);
-  //     lcd.print("test");
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting....");
   if (!client.connect(host, port)) {
     Serial.println("connection failed");
     delay(5000);
     return;
   }
+  lcd.setCursor(0,0);
+  lcd.print("Connected.");
+  delay(1000);
+  if (client.connected())client.print(":IP"+String(WiFi.localIP()[3])+"."+String(WiFi.localIP()[2])+"#");
+  lcd.clear();
   while (1) {
     // This will send a string to the server
     // Serial.println("send");
@@ -261,7 +266,7 @@ void loop() {
       s.setCharAt(17, '\'');
       s.setCharAt(21, '"');
       lcd.setCursor(19, 0);
-      lcd.print("R");
+      lcd.print("X");
       s.replace("#", " ");
       s.replace(225, ':');
       // Serial.print(s);
