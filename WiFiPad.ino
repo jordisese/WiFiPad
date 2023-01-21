@@ -113,7 +113,7 @@ void keypadEvent(KeypadEvent key) {
           case '2': client.print(":Qn#"); break;
           case '8': client.print(":Qs#"); break;
           case '3': client.print(":FQ#"); break;
-          case '5': client.print(":FQ#"); break;
+          case '1': client.print(":FQ#"); break;
           default: break;
 
         }
